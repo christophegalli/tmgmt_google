@@ -20,7 +20,7 @@ class TMGMTGoogleTranslatorUIController extends TMGMTDefaultTranslatorUIControll
       '#title' => t('Google API key'),
       '#default_value' => $translator->getSetting('api_key'),
       '#description' => t('Please enter your Google API key or visit <a href="@url">Google APIs console</a> to create new one.',
-        array('!link' => 'https://code.google.com/apis/console')),
+        array('@url' => 'https://code.google.com/apis/console')),
     );
 
     return parent::pluginSettingsForm($form, $form_state, $translator);

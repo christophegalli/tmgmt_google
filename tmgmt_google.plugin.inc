@@ -127,6 +127,16 @@ class TMGMTGoogleTranslatorPluginController extends TMGMTDefaultTranslatorPlugin
     }
   }
 
+  /**
+   * Helper method to do translation request.
+   *
+   * @param TMGMTJob $job
+   * @param array|string $q
+   *   Text/texts to be translated.
+   *
+   * @return array
+   *   Userialized JSON containing translated texts.
+   */
   protected function googleRequestTranslation(TMGMTJob $job, $q) {
     return $this->doRequest($job->getTranslator(), 'translate', array(
       'source' => $job->source_language,
@@ -166,12 +176,24 @@ class TMGMTGoogleTranslatorPluginController extends TMGMTDefaultTranslatorPlugin
   }
 
   /**
+   * Local method to do request to Google Translate service.
+   *
    * @param TMGMTTranslator $translator
-   * @param $action
+   *   The translator entity to get the settings from.
+   * @param string $action
+   *   Action to be performed [translate, languages, detect]
    * @param array $query
+   *   (Optional) Additional query params to be passed into the request.
    * @param array $options
-   * @return object
+   *   (Optional) Additional options that will be passed into drupal_http_request().
+   *
+   * @return array object
+   *   Unserialized JSON response from Google.
+   *
    * @throws TMGMTGoogleException
+   *   - Invalid action provided
+   *   - Unable to connect to the Google Service
+   *   - Error returned by the Google Service
    */
   protected function doRequest(TMGMTTranslator $translator, $action, array $query = array(), array $options = array()) {
 
