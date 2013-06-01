@@ -138,9 +138,10 @@ class TMGMTGoogleTranslatorPluginController extends TMGMTDefaultTranslatorPlugin
    *   Userialized JSON containing translated texts.
    */
   protected function googleRequestTranslation(TMGMTJob $job, $q) {
-    return $this->doRequest($job->getTranslator(), 'translate', array(
-      'source' => $job->source_language,
-      'target' => $job->target_language,
+    $translator = $job->getTranslator();
+    return $this->doRequest($translator, 'translate', array(
+      'source' => $translator->mapToRemoteLanguage($job->source_language),
+      'target' => $translator->mapToRemoteLanguage($job->target_language),
       $this->qParamName => $q,
     ), array(
       'headers' => array(
@@ -150,9 +151,9 @@ class TMGMTGoogleTranslatorPluginController extends TMGMTDefaultTranslatorPlugin
   }
 
   /**
-   * Overrides TMGMTDefaultTranslatorPluginController::getSupportedTargetLanguages().
+   * Overrides TMGMTDefaultTranslatorPluginController::getSupportedRemoteLanguages().
    */
-  public function getSupportedTargetLanguages(TMGMTTranslator $translator, $source_language) {
+  public function getSupportedRemoteLanguages(TMGMTTranslator $translator) {
     $languages = array();
 
     try {
@@ -162,7 +163,26 @@ class TMGMTGoogleTranslatorPluginController extends TMGMTDefaultTranslatorPlugin
       }
     }
     catch (TMGMTGoogleException $e) {
-      watchdog_exception('tmgmt', $e, 'Unable to retrieve a list of available languages.');
+      watchdog_exception('tmgmt', $e);
+      drupal_set_message(t('Unable to retrieve a list of available languages.'), 'error');
+    }
+
+    return $languages;
+  }
+
+  /**
+   * Overrides TMGMTDefaultTranslatorPluginController::getSupportedTargetLanguages().
+   */
+  public function getSupportedTargetLanguages(TMGMTTranslator $translator, $source_language) {
+    $languages = array();
+    $remote_languages = $this->getSupportedRemoteLanguages($translator);
+    foreach ($remote_languages as $remote_language) {
+      $local_language = $translator->mapToLocalLanguage($remote_language);
+      $languages[$local_language] = $local_language;
+    }
+
+    if (isset($languages[$source_language])) {
+      unset($languages[$source_language]);
     }
 
     return $languages;

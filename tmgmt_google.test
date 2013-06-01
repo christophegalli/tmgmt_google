@@ -82,7 +82,8 @@ class TMGMTGoogleTestCase extends TMGMTBaseTestCase {
 
     $this->assertTrue(isset($languages['de']));
     $this->assertTrue(isset($languages['fr']));
-    $this->assertTrue(isset($languages['en']));
+    // As we requested source language english it should not be included.
+    $this->assertTrue(!isset($languages['en']));
 
     $this->assertTrue($job->isTranslatable());
 
