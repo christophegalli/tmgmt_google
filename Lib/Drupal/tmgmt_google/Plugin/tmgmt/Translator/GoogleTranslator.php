@@ -8,8 +8,8 @@
 namespace Drupal\tmgmt_google\Plugin\tmgmt\Translator;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\tmgmt\Plugin\Core\Entity\Job;
-use Drupal\tmgmt\Plugin\Core\Entity\Translator;
+use Drupal\tmgmt\Entity\Job;
+use Drupal\tmgmt\Entity\Translator;
 use Drupal\tmgmt\TMGMTException;
 use Drupal\tmgmt\TranslatorPluginBase;
 use Drupal\tmgmt\Annotation\TranslatorPlugin;
@@ -104,7 +104,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * Overrides TMGMTDefaultTranslatorPluginController::isAvailable().
    */
-  public function isAvailable(TMGMTTranslator $translator) {
+  public function isAvailable(Translator $translator) {
     if ($translator->getSetting('api_key')) {
       return TRUE;
     }
@@ -262,7 +262,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * Overrides TMGMTDefaultTranslatorPluginController::hasCheckoutSettings().
    */
-  public function hasCheckoutSettings(TMGMTJob $job) {
+  public function hasCheckoutSettings(Job $job) {
     return FALSE;
   }
 
