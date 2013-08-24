@@ -336,4 +336,24 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     return $response;
   }
 
+  /**
+   * We provide translatorUrl setter so that we can override its value
+   * in automated testing.
+   *
+   * @param $translator_url
+   */
+  final function setTranslatorURL($translator_url) {
+    $this->translatorUrl = $translator_url;
+  }
+
+  /**
+   * The q parameter name needs to be overridden for Drupal testing as it
+   * collides with Drupal q parameter.
+   *
+   * @param $name
+   */
+  final function setQParamName($name) {
+    $this->qParamName = $name;
+  }
+
 }
