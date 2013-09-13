@@ -207,11 +207,11 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   public function getSupportedRemoteLanguages(Translator $translator) {
     $languages = array();
     // Prevent access if the translator isn't configured yet.
-    if (!$translator->getSetting('clientid')) {
+    if (!$translator->getSetting('api_key')) {
       return $languages;
     }
     try {
-      $request = $this->doRequest($translator, 'GetLanguagesForTranslate');
+      $request = $this->doRequest($translator, 'languages');
       if ($request) {
         $dom = new \DOMDocument;
         $dom->loadXML($request->getBody(TRUE));
@@ -298,28 +298,12 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     }
 
     $query['key'] = $translator->getSetting('api_key');
-    $q = NULL;
-
-    // If we have q param for translation as an array, we have to process it
-    // in different way as does url() as Google does not accept typical
-    // q[0] & q[1] ... syntax.
-    if (isset($query[$this->qParamName]) && is_array($query[$this->qParamName])) {
-      $q = $query[$this->qParamName];
-      unset($query[$this->qParamName]);
-    }
-
     $url = url($this->translatorUrl . '/' . $action, array('query' => $query));
+    // Verstehe nicht, wie man das richtig in einen Guzzle Call umwandelt.
+    $response = $this->client->get($url, array())->send();
 
-    // Append q params to the url.
-    if (!empty($q)) {
-      foreach ($q as $source_text) {
-        $url .= "&{$this->qParamName}=" . str_replace('%2F', '/', rawurlencode($source_text));
-      }
-    }
-
-    $response = drupal_http_request($url, $options);
-
-    if ($response->code != 200) {
+    // $response hat ein Format, das ich nicht verstehe....
+    if ($response->statusCode != 200) {
       throw new TMGMTGoogleException('Unable to connect to Google Translate service due to following error: @error at @url',
         array('@error' => $response->error, '@url' => $url));
     }
