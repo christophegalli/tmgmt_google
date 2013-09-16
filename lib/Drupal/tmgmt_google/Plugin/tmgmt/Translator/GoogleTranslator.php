@@ -299,17 +299,10 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
 
     $query['key'] = $translator->getSetting('api_key');
     $url = url($this->translatorUrl . '/' . $action, array('query' => $query));
-    // Verstehe nicht, wie man das richtig in einen Guzzle Call umwandelt.
     $response = $this->client->get($url, array())->send();
 
-    // $response hat ein Format, das ich nicht verstehe....
-    if ($response->statusCode != 200) {
-      throw new TMGMTGoogleException('Unable to connect to Google Translate service due to following error: @error at @url',
-        array('@error' => $response->error, '@url' => $url));
-    }
-
     // Process the JSON result into array.
-    $response = drupal_json_decode($response->data);
+    $response = $response->json();
 
     // If we do not have data - we got error.
     if (!isset($response['data'])) {

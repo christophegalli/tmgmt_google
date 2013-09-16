@@ -8,6 +8,7 @@
 namespace Drupal\tmgmt_google\Tests;
 
 use Drupal\tmgmt\Tests\TMGMTTestBase;
+use Drupal\tmgmt_google\Plugin\tmgmt\Translator\GoogleTranslator;
 use TMGMTGoogleTranslatorPluginController;
 
 /**
@@ -42,12 +43,19 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     $this->addLanguage('de');
     $translator = $this->createTranslator();
     $translator->plugin = 'google';
-    $translator->settings = array(
-      'url' => url('https://www.googleapis.com/language/translate/v2', array(
-        'absolute' => TRUE,
-      )),
-    );
     $translator->save();
+
+    /**
+     * @var TMGMTGoogleTranslatorPluginController $plugin
+     */
+    $plugin = $translator->getController();
+    $this->assertTrue($plugin instanceof GoogleTranslator,
+      'Plugin initialization - we expect TMGMTGoogleTranslatorPluginController type.');
+
+    // Override plugin params to query tmgmt_google_test mock service instead
+    // of Google Translate service.
+    $plugin->setQParamName('_q');
+    $plugin->setTranslatorURL(url('tmgmt_google_test', array('absolute' => TRUE)));
 
     $job = $this->createJob();
     $job->translator = $translator->name;
@@ -64,9 +72,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
                        parameters.');
 
     // Save a wrong api key.
-    $translator->settings['api'] = 'wrong key';
-    $translator->settings['clientid'] = 'wrong clientid';
-    $translator->settings['clientsecret'] = 'wrong secret';
+    $translator->settings['api_key'] = 'wrong key';
     $translator->save();
 
     $t = $job->getTranslator();
@@ -74,9 +80,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     $this->assertTrue(empty($languages), t('We can not get the languages using wrong api parameters.'));
 
     // Save a correct api key.
-    $translator->settings['api'] = 'correct key';
-    $translator->settings['clientid'] = 'correct clientid';
-    $translator->settings['clientsecret'] = 'correct secret';
+    $translator->settings['api_key'] = 'correct key';
     $translator->save();
 
     // Make sure the translator returns the correct supported target languages.
@@ -84,15 +88,11 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     cache('tmgmt')->deleteAll();
     $languages = $t->getSupportedTargetLanguages('en');
     $this->assertTrue(isset($languages['de']));
-    $this->assertTrue(isset($languages['es']));
-    $this->assertTrue(isset($languages['it']));
-    $this->assertTrue(isset($languages['zh-hans']));
-    $this->assertTrue(isset($languages['zh-hant']));
-    $this->assertFalse(isset($languages['zh-CHS']));
-    $this->assertFalse(isset($languages['zh-CHT']));
-    $this->assertFalse(isset($languages['en']));
+    $this->assertTrue(isset($languages['fr']));
+    // As we requested source language english it should not be included.
+    $this->assertTrue(!isset($languages['en']));
 
-    $this->assertTrue($job->canRequestTranslation());
+    $this->assertTrue($job->isTranslatable());
 
     $job->requestTranslation();
 
@@ -103,8 +103,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     $items = $job->getItems();
     $item = end($items);
     $data = $item->getData();
-    $this->assertEqual('de_Hello world', $data['wrapper']['#translation']['#text']);
-
+    $this->assertEqual('Hallo Welt', $data['wrapper']['#translation']['#text']);
 
   }
 }
