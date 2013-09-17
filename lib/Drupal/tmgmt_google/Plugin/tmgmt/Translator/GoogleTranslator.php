@@ -212,14 +212,11 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     }
     try {
       $request = $this->doRequest($translator, 'languages');
-      if ($request) {
-        $dom = new \DOMDocument;
-        $dom->loadXML($request->getBody(TRUE));
-        foreach ($dom->getElementsByTagName('string') as $item) {
-          $languages[$item->nodeValue] = $item->nodeValue;
-        }
+      foreach ($request['data']['languages'] as $language) {
+        $languages[$language['language']] = $language['language'];
       }
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       drupal_set_message($e->getMessage(), 'error');
       return $languages;
     }
