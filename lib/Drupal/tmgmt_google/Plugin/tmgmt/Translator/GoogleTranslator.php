@@ -295,7 +295,25 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     }
 
     $query['key'] = $translator->getSetting('api_key');
+
+    // If we have q param for translation as an array, we have to process it
+    // in different way as does url() as Google does not accept typical
+    // q[0] & q[1] ... syntax.
+    if (isset($query[$this->qParamName]) && is_array($query[$this->qParamName])) {
+      $q = $query[$this->qParamName];
+      unset($query[$this->qParamName]);
+    }
+
     $url = url($this->translatorUrl . '/' . $action, array('query' => $query));
+
+    // Append q params to the url.
+    if (!empty($q)) {
+      foreach ($q as $source_text) {
+        $url .= "&{$this->qParamName}=" . str_replace('%2F', '/', rawurlencode($source_text));
+      }
+    }
+
+
     $response = $this->client->get($url, array())->send();
 
     // Process the JSON result into array.
