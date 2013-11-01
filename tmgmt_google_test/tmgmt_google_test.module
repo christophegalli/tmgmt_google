@@ -12,14 +12,6 @@
 function tmgmt_google_test_menu() {
   $menu = array();
 
-  $menu['tmgmt_google_test/languages'] = array(
-    'title' => 'Get available languages',
-    'page callback' => 'tmgmt_google_test_available_languages',
-    'access callback' => TRUE,
-    'file' => 'tmgmt_google_test.module',
-    'type' => MENU_CALLBACK,
-  );
-
   $menu['tmgmt_google_test'] = array(
     'title' => 'Translate',
     'page callback' => 'tmgmt_google_test_translate',
