@@ -15,7 +15,9 @@ use Drupal\tmgmt\TranslatorPluginBase;
 use Drupal\tmgmt\Annotation\TranslatorPlugin;
 use Drupal\Core\Annotation\Translation;
 use Guzzle\Http\ClientInterface;
+use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\RequestException;
+use Guzzle\Http\QueryAggregator\DuplicateAggregator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -294,38 +296,24 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
       $action = '';
     }
 
-    $query['key'] = $translator->getSetting('api_key');
+    $url = url($this->translatorUrl . '/' . $action);
 
-    // If we have q param for translation as an array, we have to process it
-    // in different way as does url() as Google does not accept typical
-    // q[0] & q[1] ... syntax.
-    if (isset($query[$this->qParamName]) && is_array($query[$this->qParamName])) {
-      $q = $query[$this->qParamName];
-      unset($query[$this->qParamName]);
+    $request = $this->client->get($url);
+    $request->getQuery()
+      ->merge($query)
+      ->set('key', $translator->getSetting('api_key'))
+      ->setAggregator(new DuplicateAggregator());
+
+    try {
+      $response = $request->send();
     }
-
-    $url = url($this->translatorUrl . '/' . $action, array('query' => $query));
-
-    // Append q params to the url.
-    if (!empty($q)) {
-      foreach ($q as $source_text) {
-        $url .= "&{$this->qParamName}=" . str_replace('%2F', '/', rawurlencode($source_text));
-      }
+    catch (BadResponseException $e) {
+      $error = $e->getResponse()->json();
+      throw new \Exception('Google Translate service returned following error: ' . $error['error']['message']);
     }
-
-
-    $response = $this->client->get($url, array())->send();
 
     // Process the JSON result into array.
-    $response = $response->json();
-
-    // If we do not have data - we got error.
-    if (!isset($response['data'])) {
-      throw new TMGMTGoogleException('Google Translate service returned following error: @error',
-        array('@error' => $response['error']['message']));
-    }
-
-    return $response;
+    return $response->json();
   }
 
   /**
