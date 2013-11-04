@@ -214,8 +214,10 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     }
     try {
       $request = $this->doRequest($translator, 'languages');
-      foreach ($request['data']['languages'] as $language) {
-        $languages[$language['language']] = $language['language'];
+      if (isset($request['data'])) {
+        foreach ($request['data']['languages'] as $language) {
+          $languages[$language['language']] = $language['language'];
+        }
       }
     }
     catch (\Exception $e) {
@@ -296,7 +298,9 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
       $action = '';
     }
 
-    $url = url($this->translatorUrl . '/' . $action);
+    // Get custom URL for testing purposes.
+    $custom_url = $translator->getSetting('url');
+    $url = ($custom_url ? $custom_url : $this->translatorUrl) . '/' . $action;
 
     $request = $this->client->get($url);
     $request->getQuery()

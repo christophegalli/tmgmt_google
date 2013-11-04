@@ -26,8 +26,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
   /**
    * Implements getInfo().
    */
-  static function getInfo()
-  {
+  public static function getInfo()  {
     return array(
       'name' => 'Google Translator tests',
       'description' => 'Tests the google translator plugin integration.',
@@ -38,24 +37,21 @@ class GoogleTranslatorTest extends TMGMTTestBase {
   /**
    * Tests basic API methods of the plugin.
    */
-  function testGoogle()
-  {
+  protected function testGoogle() {
     $this->addLanguage('de');
     $translator = $this->createTranslator();
     $translator->plugin = 'google';
     $translator->save();
 
-    /**
-     * @var TMGMTGoogleTranslatorPluginController $plugin
-     */
     $plugin = $translator->getController();
     $this->assertTrue($plugin instanceof GoogleTranslator,
       'Plugin initialization - we expect TMGMTGoogleTranslatorPluginController type.');
 
     // Override plugin params to query tmgmt_google_test mock service instead
     // of Google Translate service.
-    $plugin->setQParamName('_q');
-    $plugin->setTranslatorURL(url('tmgmt_google_test', array('absolute' => TRUE)));
+    $translator->settings = array(
+      'url' => url('tmgmt_google_test', array('absolute' => TRUE)),
+    );
 
     $job = $this->createJob();
     $job->translator = $translator->name;
