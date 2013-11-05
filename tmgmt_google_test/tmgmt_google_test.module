@@ -4,34 +4,3 @@
  * Main bootstrap file of the tmgmt_google_test module.
  */
 
-
-/**
- * Implements hook_menu().
- *
- */
-function tmgmt_google_test_menu() {
-  $menu = array();
-
-  $menu['tmgmt_google_test_http_request'] = array(
-    'title' => 'Test http request',
-    'page callback' => 'tmgmt_google_test_http_request',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'weight' => 0,
-  );
-
-  return $menu;
-}
-
-
-
-
-/**
- * Callback to test if we can do http request from and to the same server.
- */
-function tmgmt_google_test_http_request() {
-  $url = url('tmgmt_google_test/languages', array('absolute' => TRUE));
-  $response = drupal_http_request($url);
-  return $url . '<pre>' . print_r($response, TRUE) . '</pre>';
-}
-

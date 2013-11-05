@@ -89,13 +89,13 @@ class GoogleTranslatorTestController {
 
     $this->validateKey($request);
 
-    if (empty($_GET['_q'])) {
+    if (!$request->query->has('-q')) {
       $this->trigger_response_error('global', 'required', 'Required parameter: q', 'parameter', 'q');
     }
-    if (empty($_GET['source'])) {
+    if (!$request->query->has('source')) {
       $this->trigger_response_error('global', 'required', 'Required parameter: source', 'parameter', 'source');
     }
-    if (empty($_GET['target'])) {
+    if (!$request->query->has('target')) {
       $this->trigger_response_error('global', 'required', 'Required parameter: target', 'parameter', 'target');
     }
 
