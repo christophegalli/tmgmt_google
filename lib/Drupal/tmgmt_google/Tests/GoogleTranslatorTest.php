@@ -88,7 +88,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     // As we requested source language english it should not be included.
     $this->assertTrue(!isset($languages['en']));
 
-    $this->assertTrue($job->isTranslatable());
+    $this->assertTrue($job->canRequestTranslation());
 
     $job->requestTranslation();
 

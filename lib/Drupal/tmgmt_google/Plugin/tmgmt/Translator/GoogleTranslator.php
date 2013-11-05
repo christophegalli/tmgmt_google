@@ -298,10 +298,11 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
       $action = '';
     }
 
-    // Get custom URL for testing purposes.
+    // Get custom URL for testing purposes, if available.
     $custom_url = $translator->getSetting('url');
     $url = ($custom_url ? $custom_url : $this->translatorUrl) . '/' . $action;
 
+    // Prepare Guzzle Object
     $request = $this->client->get($url);
     $request->getQuery()
       ->merge($query)

@@ -82,6 +82,39 @@ class GoogleTranslatorTestController {
     return new JsonResponse($response);
   }
 
+  /**
+   * Mok service to translate request.
+   */
+  public function translate(Request $request) {
+
+    $this->validateKey($request);
+
+    if (empty($_GET['_q'])) {
+      $this->trigger_response_error('global', 'required', 'Required parameter: q', 'parameter', 'q');
+    }
+    if (empty($_GET['source'])) {
+      $this->trigger_response_error('global', 'required', 'Required parameter: source', 'parameter', 'source');
+    }
+    if (empty($_GET['target'])) {
+      $this->trigger_response_error('global', 'required', 'Required parameter: target', 'parameter', 'target');
+    }
+
+    $translations = array(
+      'de' => 'Hallo Welt',
+      'fr' => 'Bonjour tout le monde',
+    );
+
+    $response = array(
+      'data' => array(
+        'translations' => array(
+          array('translatedText' => $translations[$_GET['target']]),
+        ),
+      ),
+    );
+
+    return new JsonResponse($response);
+
+  }
 
 
 //    return new JsonResponse($matches); Keep for Copy/learning
