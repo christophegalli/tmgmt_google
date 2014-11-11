@@ -14,10 +14,10 @@ use Drupal\tmgmt\TMGMTException;
 use Drupal\tmgmt\TranslatorPluginBase;
 use Drupal\tmgmt\Annotation\TranslatorPlugin;
 use Drupal\Core\Annotation\Translation;
-use Guzzle\Http\ClientInterface;
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Http\Exception\RequestException;
-use Guzzle\Http\QueryAggregator\DuplicateAggregator;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp;
+use GuzzleHttp\Message;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -70,14 +70,14 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * Guzzle HTTP client.
    *
-   * @var \Guzzle\Http\ClientInterface
+   * @var \GuzzleHttp\ClientInterface
    */
   protected $client;
 
   /**
    * Constructs a LocalActionBase object.
    *
-   * @param \Guzzle\Http\ClientInterface $client
+   * @param \GuzzleHttp\ClientInterface $client
    *   The Guzzle HTTP client.
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -94,9 +94,9 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, array $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id,  $plugin_definition) {
     return new static(
-      $container->get('http_default_client'),
+      $container->get('http_client'),
       $configuration,
       $plugin_id,
       $plugin_definition
@@ -287,7 +287,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    *   - Unable to connect to the Google Service
    *   - Error returned by the Google Service
    */
-  protected function doRequest(Translator $translator, $action, array $query = array(), array $options = array()) {
+  protected function doRequest(Translator $translator, $action, array $request_query = array(), array $options = array()) {
 
     if (!in_array($action, $this->availableActions)) {
       throw new TMGMTGoogleException('Invalid action requested: @action', array('@action' => $action));
@@ -302,15 +302,13 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     $custom_url = $translator->getSetting('url');
     $url = ($custom_url ? $custom_url : $this->translatorUrl) . '/' . $action;
 
-    // Prepare Guzzle Object
-    $request = $this->client->get($url);
-    $request->getQuery()
-      ->merge($query)
-      ->set('key', $translator->getSetting('api_key'))
-      ->setAggregator(new DuplicateAggregator());
+    // Prepare Guzzle Object.
+    $request = $this->client->createRequest('GET', $url);
+    $query = $request->getQuery();
+    $query->set('key', $translator->getSetting('api_key'));
 
     try {
-      $response = $request->send();
+      $response = $this->client->send($request);
     }
     catch (BadResponseException $e) {
       $error = $e->getResponse()->json();

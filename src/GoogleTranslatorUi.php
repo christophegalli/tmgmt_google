@@ -9,7 +9,7 @@ namespace Drupal\tmgmt_google;
 
 use Drupal\tmgmt\Entity\Translator;
 use Drupal\tmgmt\TranslatorPluginUiBase;
-use TMGMTDefaultTranslatorUIController;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Google translator UI.
@@ -19,7 +19,7 @@ class GoogleTranslatorUi extends TranslatorPluginUiBase {
   /**
    * Overrides TMGMTDefaultTranslatorUIController::pluginSettingsForm().
    */
-  public function pluginSettingsForm($form, &$form_state, Translator $translator, $busy = FALSE) {
+  public function pluginSettingsForm(array $form, FormStateInterface $form_state, Translator $translator, $busy = FALSE) {
     $form['api_key'] = array(
       '#type' => 'textfield',
       '#title' => t('Google API key'),
