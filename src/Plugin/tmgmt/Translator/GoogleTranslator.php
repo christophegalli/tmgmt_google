@@ -7,16 +7,16 @@
 
 namespace Drupal\tmgmt_google\Plugin\tmgmt\Translator;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\tmgmt\Entity\Job;
 use Drupal\tmgmt\Entity\Translator;
 use Drupal\tmgmt\TMGMTException;
 use Drupal\tmgmt\TranslatorPluginBase;
-use Drupal\tmgmt\Annotation\TranslatorPlugin;
-use Drupal\Core\Annotation\Translation;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp;
+use GuzzleHttp\Query;
 use GuzzleHttp\Message;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -124,7 +124,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     foreach (array_filter(tmgmt_flatten_data($job->getData()), '_tmgmt_filter_data') as $value) {
       // If one of the texts in this job exceeds the max character count the job
       // can't be translated.
-      if (drupal_strlen($value['#text']) > $this->maxCharacters) {
+      if ( Unicode::strlen($value['#text']) > $this->maxCharacters) {
         return FALSE;
       }
     }
@@ -172,7 +172,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
       // requests succeeded.
       $job->addTranslatedData(tmgmt_unflatten_data($translation));
     }
-    catch (TMGMTGoogleException $e) {
+    catch (TMGMTException $e) {
       $job->rejected('Translation has been rejected with following error: !error',
         array('!error' => $e->getMessage()), 'error');
     }
@@ -181,7 +181,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * Helper method to do translation request.
    *
-   * @param TMGMTJob $job
+   * @param Job $job
    * @param array|string $q
    *   Text/texts to be translated.
    *
@@ -191,8 +191,8 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   protected function googleRequestTranslation(Job $job, $q) {
     $translator = $job->getTranslator();
     return $this->doRequest($translator, 'translate', array(
-      'source' => $translator->mapToRemoteLanguage($job->source_language),
-      'target' => $translator->mapToRemoteLanguage($job->target_language),
+      'source' => $translator->mapToRemoteLanguage($job->getSourceLanguage()->getId()),
+      'target' => $translator->mapToRemoteLanguage($job->getTargetLanguage()->getId()),
       $this->qParamName => $q,
     ), array(
       'headers' => array(
@@ -270,7 +270,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * Local method to do request to Google Translate service.
    *
-   * @param TMGMTTranslator $translator
+   * @param Translator $translator
    *   The translator entity to get the settings from.
    * @param string $action
    *   Action to be performed [translate, languages, detect]
@@ -282,7 +282,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    * @return array object
    *   Unserialized JSON response from Google.
    *
-   * @throws TMGMTGoogleException
+   * @throws TMGMTException
    *   - Invalid action provided
    *   - Unable to connect to the Google Service
    *   - Error returned by the Google Service
@@ -290,7 +290,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   protected function doRequest(Translator $translator, $action, array $request_query = array(), array $options = array()) {
 
     if (!in_array($action, $this->availableActions)) {
-      throw new TMGMTGoogleException('Invalid action requested: @action', array('@action' => $action));
+      throw new TMGMTException('Invalid action requested: @action', array('@action' => $action));
     }
 
     // Translate action is requested without this argument.
@@ -305,7 +305,10 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     // Prepare Guzzle Object.
     $request = $this->client->createRequest('GET', $url);
     $query = $request->getQuery();
+    $query->merge($request_query);
     $query->set('key', $translator->getSetting('api_key'));
+    $query->setAggregator($query::duplicateAggregator());
+    $temp = $request->getUrl();
 
     try {
       $response = $this->client->send($request);
