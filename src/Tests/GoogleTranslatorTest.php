@@ -7,9 +7,11 @@
 
 namespace Drupal\tmgmt_google\Tests;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\tmgmt\Tests\TMGMTTestBase;
 use Drupal\tmgmt_google\Plugin\tmgmt\Translator\GoogleTranslator;
 use TMGMTGoogleTranslatorPluginController;
+use Drupal\Core\Url;
 
 /**
  * Basic tests for the google translator.
@@ -26,7 +28,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
   /**
    * Implements getInfo().
    */
-  public static function getInfo()  {
+  public static function getInfo() {
     return array(
       'name' => 'Google Translator tests',
       'description' => 'Tests the google translator plugin integration.',
@@ -50,7 +52,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     // Override plugin params to query tmgmt_google_test mock service instead
     // of Google Translate service.
     $translator->settings = array(
-      'url' => url('tmgmt_google_test', array('absolute' => TRUE)),
+      'url' => 'tmgmt_google_test',
     );
 
     $job = $this->createJob();
@@ -81,7 +83,7 @@ class GoogleTranslatorTest extends TMGMTTestBase {
 
     // Make sure the translator returns the correct supported target languages.
     $t = $job->getTranslator();
-    cache('tmgmt')->deleteAll();
+    $t->clearLanguageCache();
     $languages = $t->getSupportedTargetLanguages('en');
     $this->assertTrue(isset($languages['de']));
     $this->assertTrue(isset($languages['fr']));
