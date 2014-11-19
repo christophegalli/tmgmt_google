@@ -51,8 +51,9 @@ class GoogleTranslatorTest extends TMGMTTestBase {
 
     // Override plugin params to query tmgmt_google_test mock service instead
     // of Google Translate service.
+    $url = Url::fromUri('base://tmgmt_google_test', array('absolute' => TRUE))->toString();
     $translator->settings = array(
-      'url' => 'tmgmt_google_test',
+      'url' => $url,
     );
 
     $job = $this->createJob();
@@ -65,16 +66,13 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     );
     $item->save();
 
-    $this->assertFalse($job->isTranslatable(), 'Check if the translator is not
-                       available at this point because we did not define the API
-                       parameters.');
+    $this->assertFalse($job->isTranslatable(), 'Check if the translator is not available at this point because we did not define the API parameters.');
 
     // Save a wrong api key.
     $translator->settings['api_key'] = 'wrong key';
     $translator->save();
 
-    $t = $job->getTranslator();
-    $languages = $t->getSupportedTargetLanguages('en');
+    $languages = $translator->getSupportedTargetLanguages('en');
     $this->assertTrue(empty($languages), t('We can not get the languages using wrong api parameters.'));
 
     // Save a correct api key.
@@ -82,9 +80,10 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     $translator->save();
 
     // Make sure the translator returns the correct supported target languages.
-    $t = $job->getTranslator();
-    $t->clearLanguageCache();
-    $languages = $t->getSupportedTargetLanguages('en');
+    $translator->clearLanguageCache();
+    $languages = $translator->getSupportedTargetLanguages('en');
+    debug($languages);
+
     $this->assertTrue(isset($languages['de']));
     $this->assertTrue(isset($languages['fr']));
     // As we requested source language english it should not be included.
@@ -101,8 +100,6 @@ class GoogleTranslatorTest extends TMGMTTestBase {
     $items = $job->getItems();
     $item = end($items);
     $data = $item->getData();
-    $this->assertEqual('Hallo Welt', $data['wrapper']['#translation']['#text']);
-
+    $this->assertEqual('Hallo Welt', $data['dummy']['deep_nesting']['#translation']['#text']);
   }
 }
-

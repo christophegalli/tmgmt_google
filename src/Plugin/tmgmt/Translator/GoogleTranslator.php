@@ -94,7 +94,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id,  $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $container->get('http_client'),
       $configuration,
@@ -124,7 +124,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
     foreach (array_filter(tmgmt_flatten_data($job->getData()), '_tmgmt_filter_data') as $value) {
       // If one of the texts in this job exceeds the max character count the job
       // can't be translated.
-      if ( Unicode::strlen($value['#text']) > $this->maxCharacters) {
+      if (Unicode::strlen($value['#text']) > $this->maxCharacters) {
         return FALSE;
       }
     }
@@ -182,6 +182,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    * Helper method to do translation request.
    *
    * @param Job $job
+   *   TMGMT Job to be used for translation.
    * @param array|string $q
    *   Text/texts to be translated.
    *
@@ -200,7 +201,6 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
       ),
     ));
   }
-
 
 
   /**
@@ -274,7 +274,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    *   The translator entity to get the settings from.
    * @param string $action
    *   Action to be performed [translate, languages, detect]
-   * @param array $query
+   * @param array $request_query
    *   (Optional) Additional query params to be passed into the request.
    * @param array $options
    *   (Optional) Additional options that will be passed into drupal_http_request().
@@ -328,7 +328,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    *
    * @param $translator_url
    */
-  final function setTranslatorURL($translator_url) {
+  final public function setTranslatorURL($translator_url) {
     $this->translatorUrl = $translator_url;
   }
 
@@ -338,7 +338,7 @@ class GoogleTranslator extends TranslatorPluginBase implements ContainerFactoryP
    *
    * @param $name
    */
-  final function setQParamName($name) {
+  final public function setQParamName($name) {
     $this->qParamName = $name;
   }
 

@@ -43,7 +43,7 @@ class GoogleTranslatorTestController {
   /**
    * Key validator helper.
    */
-  function validateKey(Request $request) {
+  protected function validateKey(Request $request) {
     if ($request->get('key') != 'correct key') {
       return $this->trigger_response_error('usageLimits', 'keyInvalid', 'Bad Request');
     }
@@ -58,7 +58,7 @@ class GoogleTranslatorTestController {
    * @param string $locationType
    * @param string $location
    */
-  function trigger_response_error($domain, $reason, $message, $locationType = NULL, $location = NULL) {
+  public function trigger_response_error($domain, $reason, $message, $locationType = NULL, $location = NULL) {
 
     $response = array(
       'error' => array(
